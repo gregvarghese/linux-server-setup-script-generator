@@ -1,76 +1,96 @@
 <html>
 <head>
     <title>New Server Setup</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous"></head>
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" rel="stylesheet">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/duotone.css" integrity="sha384-R3QzTxyukP03CMqKFe0ssp5wUvBPEyy9ZspCB+Y01fEjhMwcXixTyeot+S40+AjZ" crossorigin="anonymous"/>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/fontawesome.css" integrity="sha384-eHoocPgXsiuZh+Yy6+7DsKAerLXyJmu2Hadh4QYyt+8v86geixVYwFqUvMU8X90l" crossorigin="anonymous"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+</head>
 <body>
 
 
 <div class="container-fluid mt-3">
     <div class="card">
-    <div class="card-header">
-        New Server Setup
-    </div>
-    <div class="card-body">
-
-        <p class="card-text">This tool will generate scripts to setup a new LAMP server with the apache config, wordpress with config.</p>
-
-        <div class="row">
-            <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
-                <div class="form-group">
-                    <label for="domain">Domain</label>
-                    <input type="text" class="form-control" id="domain" aria-describedby="domainHelp" placeholder="domain.com" value="ragas.online">
-                    <small id="domainHelp" class="form-text text-muted">Domain to create folder for</small>
-                </div>
-                <button type="button" onclick="generateScript()" class="btn btn-primary">Generate</button>
-            </div>
+        <div class="card-header">
+            New Server Setup
         </div>
+        <div class="card-body">
 
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="chkNewServer" checked   >
-            <label class="form-check-label" for="chkNewServer">Setup New Server</label>
-        </div>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="chkWordpress" checked>
-            <label class="form-check-label" for="chkWordpress">Setup Wordpress</label>
-        </div>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="chkApache" checked>
-            <label class="form-check-label" for="chkApache">Add Apache Config</label>
-        </div>
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" id="chkMysql" checked>
-            <label class="form-check-label" for="chkMysql">Create MySQL Database</label>
-        </div>
+            <p class="card-text">This tool will generate scripts to setup a new LAMP server with the apache config, wordpress with config.</p>
 
-
-        <div class="row">
-            <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
-                <div class="form-group">
-                    <label for="output">Output</label>
-                    <textarea class="form-control" id="output" rows="20"></textarea>
+            <div class="row">
+                <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
+                    <div class="form-group">
+                        <label for="domain">Domain</label>
+                        <input aria-describedby="domainHelp" class="form-control" id="domain" placeholder="domain.com" type="text" value="ragas.online">
+                        <small class="form-text text-muted" id="domainHelp">Domain to create folder for</small>
+                    </div>
+                    <button class="btn btn-primary" onclick="generateScript()" type="button">Generate</button>
                 </div>
             </div>
+
+            <div class="form-check form-switch">
+                <input checked class="form-check-input" id="chkNewServer" type="checkbox">
+                <label class="form-check-label" for="chkNewServer">Setup New Server</label>
+            </div>
+            <div class="form-check form-switch">
+                <input checked class="form-check-input" id="chkWordpress" type="checkbox">
+                <label class="form-check-label" for="chkWordpress">Setup Wordpress</label>
+            </div>
+            <div class="form-check form-switch">
+                <input checked class="form-check-input" id="chkApache" type="checkbox">
+                <label class="form-check-label" for="chkApache">Add Apache Config</label>
+            </div>
+            <div class="form-check form-switch">
+                <input checked class="form-check-input" id="chkMysql" type="checkbox">
+                <label class="form-check-label" for="chkMysql">Create MySQL Database</label>
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
+                    <div class="form-group">
+                        <button type="button" class="btn btn-secondary" onclick="copyClipboard()"><i class="fad fa-paste"></i></button>
+                        <label for="output">Output</label>
+                        <textarea class="form-control" id="output" rows="20"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
     </div>
 </div>
 
 
 <script type="text/javascript">
+    let elOutput = document.getElementById('output');
 
     function genPassword(passwordLength) {
         const chars = "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         let password = "";
         for (let i = 0; i <= passwordLength; i++) {
             const randomNumber = Math.floor(Math.random() * chars.length);
-            password += chars.substring(randomNumber, randomNumber +1);
+            password += chars.substring(randomNumber, randomNumber + 1);
         }
         return password;
     }
 
+    function copyClipboard() {
+        elOutput.select();
+        elOutput.setSelectionRange(0, 99999); /* For mobile devices */
+        navigator.clipboard.writeText(elOutput.value);
+
+        elOutput.focus();
+        elOutput.setSelectionRange(elOutput.value.length,elOutput.value.length); /* For mobile devices */
+        elOutput.blur();
+        elOutput.focus();
+
+    }
+
     function generateScript() {
         let elDomain = document.getElementById('domain').value;
-        let elOutput = document.getElementById('output');
 
 
         let bNewServer = document.getElementById('chkNewServer').checked;
@@ -91,10 +111,12 @@
                 "sudo ufw allow in \"Apache Full\"\n" +
                 "sudo apt install php libapache2-mod-php php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip -y\n" +
                 "sudo a2enmod rewrite\n" +
-                "sudo systemctl restart apache2\n\n" ;
+                "sudo systemctl restart apache2\n\n";
 
 
-            mysql = "CREATE DATABASE '" + wordpressuser + "' DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;\n" +
+            mysql = "# Setup MySQL Databases\n" +
+                "sudo mysql -u root\n" +
+                "CREATE DATABASE '" + wordpressuser + "' DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;\n" +
                 "CREATE USER '" + wordpressuser + "_user'@'%' IDENTIFIED WITH mysql_native_password BY '" + sPassword + "';\n" +
                 "GRANT ALL ON " + wordpressuser + ".* TO '" + wordpressuser + "_user@'%';\n" +
                 "FLUSH PRIVILEGES;\n" +
@@ -116,14 +138,13 @@
                 "printf '%s\n' \"g/$STRING/d\" a \"$SALT\" . w | ed -s wp-config.php\n" +
 
                 "mkdir /tmp/wordpress/wp-content/upgrade\n" +
-                "sudo cp -a /tmp/wordpress/. /var/www/" + elDomain + "\n\n" +
-                "sudo mysql -u root\n\n";
+                "sudo cp -a /tmp/wordpress/. /var/www/" + elDomain + "\n\n";
 
-            apache = "# Setup Apache Config" +
+            apache = "# Setup Apache Config\n" +
                 "sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/" + elDomain + ".conf\n" +
                 "printf '%s\n' \"g/DocumentRoot /var/www/html/d\" a \"\t/var/www/" + elDomain + "\" . w | ed -s /etc/apache2/sites-available/" + elDomain + ".conf\n\n";
 
-            permissions = "# Fix permissions" +
+            permissions = "# Fix permissions\n" +
                 "sudo a2enmod rewrite\n" +
                 "sudo systemctl restart apache2\n" +
                 "sudo chown -R www-data:www-data /var/www/" + elDomain + "\n" +
@@ -138,6 +159,6 @@
 
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+<script crossorigin="anonymous" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
