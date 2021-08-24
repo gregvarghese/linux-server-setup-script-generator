@@ -24,6 +24,16 @@
             <div class="row">
                 <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
                     <div class="form-group">
+                        <label for="domain">Add New User</label>
+                        <input aria-describedby="userHelp" class="form-control" id="user" placeholder="username" type="text">
+                        <small class="form-text text-muted" id="userHelp">User to Add to Server</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
+                    <div class="form-group">
                         <label for="domain">Domain</label>
                         <input aria-describedby="domainHelp" class="form-control" id="domain" placeholder="domain.com" type="text" value="ragas.online">
                         <small class="form-text text-muted" id="domainHelp">Domain to create folder for</small>
@@ -47,6 +57,14 @@
             <div class="form-check form-switch">
                 <input checked class="form-check-input" id="chkMysql" type="checkbox">
                 <label class="form-check-label" for="chkMysql">Create MySQL Database</label>
+            </div>
+            <div class="form-check form-switch">
+                <input checked class="form-check-input" id="chkAddUser" type="checkbox">
+                <label class="form-check-label" for="chkAddUser">Create New User</label>
+            </div>
+            <div class="form-check form-switch">
+                <input checked class="form-check-input" id="chkAddCertbot" type="checkbox">
+                <label class="form-check-label" for="chkAddCertbot">Add Certbot</label>
             </div>
 
 
@@ -92,11 +110,12 @@
     function generateScript() {
         let elDomain = document.getElementById('domain').value;
 
-
         let bNewServer = document.getElementById('chkNewServer').checked;
         let bWordPress = document.getElementById('chkWordpress').checked;
         let bMysql = document.getElementById('chkMysql').checked;
         let bApache = document.getElementById('chkApache').checked;
+        let bUser = (document.getElementById('chkAddUser').checked && ;
+        let bCertbot = document.getElementById('chkAddCertbot').checked;
 
         let script = "Folder cannot be blank";
 
@@ -104,6 +123,7 @@
 
             let wordpressuser = elDomain.split(".")[0]
             let sPassword = genPassword(12);
+            let username = document.getElementById('user').value;
 
             script = "# Setup Apache + PHP\n" +
                 "sudo apt update\n" +
@@ -113,6 +133,9 @@
                 "sudo a2enmod rewrite\n" +
                 "sudo systemctl restart apache2\n\n";
 
+            user = "# Add new user to server\n" +
+                "adduser " + username + "\n" +
+                "usermod -aG sudo " + username + "\n\n";
 
             mysql = "# Setup MySQL Databases\n" +
                 "sudo mysql -u root\n" +
@@ -121,6 +144,9 @@
                 "GRANT ALL ON " + wordpressuser + ".* TO '" + wordpressuser + "_user@'%';\n" +
                 "FLUSH PRIVILEGES;\n" +
                 "EXIT;\n\n";
+
+            certbot = "# Setup Certbot\n" +
+                "sudo apt install certbot python3-certbot-apache\n\n";
 
             wordpress = "# Download and configure wordpress\n" +
                 "cd /tmp\n" +
@@ -152,9 +178,9 @@
                 "sudo find /var/www/" + elDomain + "/ -type f -exec chmod 640 {} \;\n" +
                 "";
 
+            elOutput.value = (bNewServer ? script : '') + (bUser ? user : '') + (bCertbot ? certbot : '') + (bMysql ? mysql : '') + (bWordPress ? wordpress : '') + (bApache ? apache : '') + permissions;
         }
 
-        elOutput.value = (bNewServer ? script : '') + (bMysql ? mysql : '') + (bWordPress ? wordpress : '') + (bApache ? apache : '') + permissions;
     }
 
 
