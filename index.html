@@ -1,0 +1,143 @@
+<html>
+<head>
+    <title>New Server Setup</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous"></head>
+<body>
+
+
+<div class="container-fluid mt-3">
+    <div class="card">
+    <div class="card-header">
+        New Server Setup
+    </div>
+    <div class="card-body">
+
+        <p class="card-text">This tool will generate scripts to setup a new LAMP server with the apache config, wordpress with config.</p>
+
+        <div class="row">
+            <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
+                <div class="form-group">
+                    <label for="domain">Domain</label>
+                    <input type="text" class="form-control" id="domain" aria-describedby="domainHelp" placeholder="domain.com" value="ragas.online">
+                    <small id="domainHelp" class="form-text text-muted">Domain to create folder for</small>
+                </div>
+                <button type="button" onclick="generateScript()" class="btn btn-primary">Generate</button>
+            </div>
+        </div>
+
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="chkNewServer" checked   >
+            <label class="form-check-label" for="chkNewServer">Setup New Server</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="chkWordpress" checked>
+            <label class="form-check-label" for="chkWordpress">Setup Wordpress</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="chkApache" checked>
+            <label class="form-check-label" for="chkApache">Add Apache Config</label>
+        </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="chkMysql" checked>
+            <label class="form-check-label" for="chkMysql">Create MySQL Database</label>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-9 col-xl-8 py-md-3 pl-md-5 bd-content">
+                <div class="form-group">
+                    <label for="output">Output</label>
+                    <textarea class="form-control" id="output" rows="20"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    function genPassword(passwordLength) {
+        const chars = "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let password = "";
+        for (let i = 0; i <= passwordLength; i++) {
+            const randomNumber = Math.floor(Math.random() * chars.length);
+            password += chars.substring(randomNumber, randomNumber +1);
+        }
+        return password;
+    }
+
+    function generateScript() {
+        let elDomain = document.getElementById('domain').value;
+        let elOutput = document.getElementById('output');
+
+
+        let bNewServer = document.getElementById('chkNewServer').checked;
+        let bWordPress = document.getElementById('chkWordpress').checked;
+        let bMysql = document.getElementById('chkMysql').checked;
+        let bApache = document.getElementById('chkApache').checked;
+
+        let script = "Folder cannot be blank";
+
+        if (elDomain) {
+
+            let wordpressuser = elDomain.split(".")[0]
+            let sPassword = genPassword(12);
+
+            script = "# Setup Apache + PHP\n" +
+                "sudo apt update\n" +
+                "sudo apt install apache2 mysql-server -y\n" +
+                "sudo ufw allow in \"Apache Full\"\n" +
+                "sudo apt install php libapache2-mod-php php-mysql php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip -y\n" +
+                "sudo a2enmod rewrite\n" +
+                "sudo systemctl restart apache2\n\n" ;
+
+
+            mysql = "CREATE DATABASE '" + wordpressuser + "' DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;\n" +
+                "CREATE USER '" + wordpressuser + "_user'@'%' IDENTIFIED WITH mysql_native_password BY '" + sPassword + "';\n" +
+                "GRANT ALL ON " + wordpressuser + ".* TO '" + wordpressuser + "_user@'%';\n" +
+                "FLUSH PRIVILEGES;\n" +
+                "EXIT;\n\n";
+
+            wordpress = "# Download and configure wordpress\n" +
+                "cd /tmp\n" +
+                "curl -O https://wordpress.org/latest.tar.gz\n" +
+                "tar xzvf latest.tar.gz\n" +
+                "touch /tmp/wordpress/.htaccess\n" +
+                "cp /tmp/wordpress/wp-config-sample.php /tmp/wordpress/wp-config.php\n" +
+
+                "printf '%s\n' \"g/define( 'DB_NAME', 'database_name_here' );/d\" a \"define( 'DB_NAME', '" + wordpressuser + "' );\" . w | ed -s wp-config.php\n" +
+                "printf '%s\n' \"g/define( 'DB_USER', 'username_here' );/d\" a \"define( 'DB_NAME', '" + wordpressuser + "_user' );\" . w | ed -s wp-config.php\n" +
+                (bMysql ? "printf '%s\n' \"g/define( 'DB_PASSWORD', 'password_here' );/d\" a \"define( 'DB_PASSWORD', '" + sPassword + "_user' );\" . w | ed -s wp-config.php\n" : "\n") +
+
+                "SALT=$(curl -L https://api.wordpress.org/secret-key/1.1/salt/)\n" +
+                "STRING='put your unique phrase here'\n" +
+                "printf '%s\n' \"g/$STRING/d\" a \"$SALT\" . w | ed -s wp-config.php\n" +
+
+                "mkdir /tmp/wordpress/wp-content/upgrade\n" +
+                "sudo cp -a /tmp/wordpress/. /var/www/" + elDomain + "\n\n" +
+                "sudo mysql -u root\n\n";
+
+            apache = "# Setup Apache Config" +
+                "sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/" + elDomain + ".conf\n" +
+                "printf '%s\n' \"g/DocumentRoot /var/www/html/d\" a \"\t/var/www/" + elDomain + "\" . w | ed -s /etc/apache2/sites-available/" + elDomain + ".conf\n\n";
+
+            permissions = "# Fix permissions" +
+                "sudo a2enmod rewrite\n" +
+                "sudo systemctl restart apache2\n" +
+                "sudo chown -R www-data:www-data /var/www/" + elDomain + "\n" +
+                "sudo find /var/www/" + elDomain + "/ -type d -exec chmod 750 {} \;\n" +
+                "sudo find /var/www/" + elDomain + "/ -type f -exec chmod 640 {} \;\n" +
+                "";
+
+        }
+
+        elOutput.value = (bNewServer ? script : '') + (bMysql ? mysql : '') + (bWordPress ? wordpress : '') + (bApache ? apache : '') + permissions;
+    }
+
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+</body>
+</html>
